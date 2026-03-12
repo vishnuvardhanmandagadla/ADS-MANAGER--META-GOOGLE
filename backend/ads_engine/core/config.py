@@ -2,17 +2,15 @@
 
 from __future__ import annotations
 
-import os
 from functools import lru_cache
 from pathlib import Path
 from typing import Optional
 
 import yaml
-from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Paths
-ROOT = Path(__file__).resolve().parents[3]  # project/backend/
+ROOT = Path(__file__).resolve().parents[2]  # backend/
 CONFIG_DIR = ROOT / "config"
 CLIENTS_DIR = CONFIG_DIR / "clients"
 

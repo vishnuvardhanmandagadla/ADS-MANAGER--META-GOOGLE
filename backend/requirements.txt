@@ -38,4 +38,3 @@ pytz==2024.2
 # Dev / testing
 pytest==8.3.4
 pytest-asyncio==0.24.0
-httpx==0.28.1            # also used for test client
