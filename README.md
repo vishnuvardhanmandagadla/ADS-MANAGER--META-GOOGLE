@@ -354,15 +354,52 @@ Claude AI suggests actions. You approve. System executes. No money moves without
 
 ---
 
-### Phase 9 — WhatsApp + Telegram notifications
-**Status: NOT STARTED**
+### Phase 9 — WhatsApp notifications
+**Status: COMPLETE — 179/179 tests passing (21 new) — 2026-03-12**
 
-- [ ] `ads_engine/notifications/whatsapp.py` — send approval requests via WhatsApp Business API
-- [ ] Webhook handler — parse ✅ / ❌ reply, call approve/reject endpoint
-- [ ] `ads_engine/notifications/telegram.py` — Telegram bot with inline approve/reject buttons
-- [ ] Daily spend digest (auto-sent at 9 AM)
-- [ ] Anomaly alerts (CPC spike, budget overrun)
-- [ ] Approval expiry reminders (4h if no response)
+- [x] `ads_engine/notifications/whatsapp.py` — `WhatsAppClient` for WhatsApp Business Cloud API
+  - `send_text(to, text)` — fire-and-forget; returns bool, never raises
+  - `send_approval_request(to, action)` — Tier 2/3 alert with APPROVE/REJECT reply instructions and short ID
+  - `send_outcome(to, action)` — approved / rejected / executed / failed confirmation
+  - `send_expiry_reminder(to, actions)` — batch expiry alert (capped at 5 items)
+  - `send_daily_digest(to, stats)` — morning summary with spend, pending count, top campaign
+  - `send_anomaly_alert(to, client_id, message)` — CPC spike / budget overrun alert
+  - `DigestStats` dataclass for digest payloads
+  - `_normalise_phone()` — strips +, spaces, dashes for E.164 format
+- [x] `ads_engine/notifications/dispatcher.py` — `NotificationDispatcher` singleton
+  - Silent no-op if `WHATSAPP_API_TOKEN` or `WHATSAPP_PHONE_NUMBER_ID` not set
+  - `on_queued(action)` — sends approval request for Tier 2/3 only (Tier 1 is silent)
+  - `on_approved / on_rejected / on_executed / on_failed / on_expired` — outcome hooks
+  - `send_daily_digest / send_anomaly_alert` — scheduled notification hooks (Phase 10 will wire scheduler)
+  - `init_dispatcher(settings)` / `get_dispatcher()` — singleton lifecycle
+- [x] `ads_engine/api/routes/webhooks.py` — WhatsApp webhook endpoints
+  - `GET /api/v1/webhooks/whatsapp` — Meta challenge verification (returns `PlainTextResponse`)
+  - `POST /api/v1/webhooks/whatsapp` — receive incoming messages, always returns 200
+  - Parses `APPROVE <id8>` and `REJECT <id8> [reason]` commands from reply text
+  - Matches short ID (first 8 chars of UUID) against pending actions in the queue
+  - Calls `queue.approve()` / `queue.reject()` with `reviewed_by="whatsapp_webhook"`
+  - Non-text messages and unknown commands are silently ignored
+- [x] `ads_engine/approval/reviewer.py` — stubs replaced with real dispatcher calls
+- [x] `main.py` — `init_dispatcher(settings)` called at startup; `dispatcher.close()` on shutdown
+- [x] `ads_engine/core/config.py` — `whatsapp_verify_token` added to Settings
+- [x] `.env.example` — `WHATSAPP_VERIFY_TOKEN` documented (Telegram removed)
+- [x] `tests/test_notifications.py` — 21 tests covering client, dispatcher, webhook verify, APPROVE/REJECT, edge cases
+
+#### Webhook reply format
+```
+APPROVE a1b2c3d4              ← approve action starting with a1b2c3d4
+REJECT  a1b2c3d4 High CPC     ← reject with reason
+```
+
+#### Audit Log (2026-03-12)
+| # | Issue | Fix |
+|---|---|---|
+| Bug 1 | Webhook verify returned `int(hub_challenge)` — Meta challenge can be any string | Changed to `PlainTextResponse(hub_challenge)` |
+
+#### Test Results (2026-03-12) — 179 passing, 0 failing
+```
+179 passed in 20.55s
+```
 
 ---
 

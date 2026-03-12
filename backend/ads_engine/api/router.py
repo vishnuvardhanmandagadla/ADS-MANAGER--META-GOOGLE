@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from .routes import ai, auth, approvals, campaigns, clients
+from .routes import ai, auth, approvals, campaigns, clients, webhooks
 
 api_router = APIRouter(prefix="/api/v1")
 
@@ -13,3 +13,4 @@ api_router.include_router(clients.router)
 api_router.include_router(approvals.router)
 api_router.include_router(ai.router)
 api_router.include_router(campaigns.router)
+api_router.include_router(webhooks.router)

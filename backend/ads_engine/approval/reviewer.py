@@ -111,29 +111,19 @@ class ActionReviewer:
             "execution_error": action.execution_error,
         }
 
-    # ── Channel stubs (Phase 9 will implement these) ───────────────────────
+    # ── Channels ───────────────────────────────────────────────────────────
 
     async def _send_whatsapp(self, message: str, action: PendingAction) -> None:
-        """Phase 9: POST to WhatsApp Business API."""
-        if self._admin_whatsapp:
-            logger.debug(
-                "[REVIEWER] WhatsApp stub → %s:\n%s", self._admin_whatsapp, message
-            )
-        # Phase 9:
-        # await whatsapp_client.send_text(self._admin_whatsapp, message)
-
-    async def _send_telegram(self, message: str, action: PendingAction) -> None:
-        """Phase 9: Send via Telegram bot with inline approve/reject buttons."""
-        logger.debug("[REVIEWER] Telegram stub — not yet configured")
-        # Phase 9:
-        # await telegram_bot.send_message(
-        #     chat_id=ADMIN_CHAT_ID,
-        #     text=message,
-        #     reply_markup=InlineKeyboardMarkup([[
-        #         InlineKeyboardButton("✅ Approve", callback_data=f"approve:{action.id}"),
-        #         InlineKeyboardButton("❌ Reject",  callback_data=f"reject:{action.id}"),
-        #     ]])
-        # )
+        """Send via WhatsApp Business Cloud API (Phase 9)."""
+        try:
+            from ..notifications import get_dispatcher
+            await get_dispatcher().on_queued(action)
+        except RuntimeError:
+            # Dispatcher not yet initialised (e.g. during tests)
+            if self._admin_whatsapp:
+                logger.debug(
+                    "[REVIEWER] WhatsApp → %s:\n%s", self._admin_whatsapp, message
+                )
 
     # ── Outcome notifications ──────────────────────────────────────────────
 

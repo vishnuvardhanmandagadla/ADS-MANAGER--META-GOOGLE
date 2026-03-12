@@ -33,10 +33,14 @@ async def lifespan(app: FastAPI):
     pending = queue.pending_count()
     print(f"[ads-engine] Approval queue ready — {pending} pending action(s)")
 
-    # TODO Phase 4: init DB connection pool
-    # TODO Phase 5: init AI client
+    # Phase 9: init WhatsApp notification dispatcher
+    from ads_engine.notifications.dispatcher import init_dispatcher
+    dispatcher = init_dispatcher(settings)
+
     yield
+
     print("[ads-engine] Shutting down")
+    await dispatcher.close()
 
 
 def create_app() -> FastAPI:

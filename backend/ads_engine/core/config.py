@@ -51,7 +51,7 @@ class Settings(BaseSettings):
     # Notifications
     whatsapp_api_token: Optional[str] = None
     whatsapp_phone_number_id: Optional[str] = None
-    telegram_bot_token: Optional[str] = None
+    whatsapp_verify_token: Optional[str] = None  # For webhook verification
 
     # Admin
     admin_email: str = "admin@example.com"
