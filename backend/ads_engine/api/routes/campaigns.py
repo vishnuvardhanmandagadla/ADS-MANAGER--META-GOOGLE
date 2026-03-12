@@ -178,6 +178,21 @@ async def create_action(
         ActionType.DISABLE_SAFETY_RULE,
     }
     if action_type in _TIER3 and user["role"] != "admin":
+        # Audit the blocked attempt
+        try:
+            from ...db.audit import get_audit_log, TIER3_ATTEMPTED
+            get_audit_log().log_event(
+                event_type=TIER3_ATTEMPTED,
+                client_id=req.client_id,
+                action_type=req.action_type,
+                platform=req.platform,
+                tier=3,
+                description=req.description,
+                actor=user.get("username"),
+                reason="Blocked — admin role required",
+            )
+        except RuntimeError:
+            pass
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin role required for Tier 3 actions.",
@@ -215,9 +230,38 @@ async def create_action(
     try:
         queue.enqueue(action)
     except PolicyViolation as exc:
+        try:
+            from ...db.audit import get_audit_log, POLICY_VIOLATION
+            get_audit_log().log_event(
+                event_type=POLICY_VIOLATION,
+                client_id=req.client_id,
+                action_type=req.action_type,
+                platform=req.platform,
+                description=req.description,
+                actor=user.get("username"),
+                reason=str(exc),
+            )
+        except RuntimeError:
+            pass
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(exc),
         )
+
+    # Audit the queued action
+    try:
+        from ...db.audit import get_audit_log, ACTION_QUEUED
+        get_audit_log().log_event(
+            event_type=ACTION_QUEUED,
+            client_id=action.client_id,
+            action_id=action.id,
+            action_type=action.action_type,
+            platform=action.platform,
+            tier=action.tier,
+            description=action.description,
+            actor=user.get("username"),
+        )
+    except RuntimeError:
+        pass
 
     return action_to_card(action)

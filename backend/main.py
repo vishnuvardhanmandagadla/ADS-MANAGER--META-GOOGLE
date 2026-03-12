@@ -33,6 +33,13 @@ async def lifespan(app: FastAPI):
     pending = queue.pending_count()
     print(f"[ads-engine] Approval queue ready — {pending} pending action(s)")
 
+    # Phase 10: init audit log
+    from ads_engine.db.audit import init_audit_log
+    safety_cfg = get_safety_config()
+    retention_days = safety_cfg.get("audit", {}).get("retention_days", 365)
+    init_audit_log(retention_days=retention_days)
+    print("[ads-engine] Audit log ready")
+
     # Phase 9: init WhatsApp notification dispatcher
     from ads_engine.notifications.dispatcher import init_dispatcher
     dispatcher = init_dispatcher(settings)

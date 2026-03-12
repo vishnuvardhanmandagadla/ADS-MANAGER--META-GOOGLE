@@ -142,6 +142,22 @@ async def approve_action(
         raise HTTPException(status_code=400, detail=str(exc))
 
     logger.info("Action %s approved by %s via API", action_id[:8], body.reviewer)
+
+    try:
+        from ...db.audit import get_audit_log, ACTION_APPROVED
+        get_audit_log().log_event(
+            event_type=ACTION_APPROVED,
+            client_id=updated.client_id,
+            action_id=updated.id,
+            action_type=updated.action_type,
+            platform=updated.platform,
+            tier=updated.tier,
+            description=updated.description,
+            actor=body.reviewer,
+        )
+    except RuntimeError:
+        pass
+
     return action_to_card(updated)
 
 
@@ -168,6 +184,23 @@ async def reject_action(
         raise HTTPException(status_code=400, detail=str(exc))
 
     logger.info("Action %s rejected by %s — %s", action_id[:8], body.reviewer, body.reason)
+
+    try:
+        from ...db.audit import get_audit_log, ACTION_REJECTED
+        get_audit_log().log_event(
+            event_type=ACTION_REJECTED,
+            client_id=updated.client_id,
+            action_id=updated.id,
+            action_type=updated.action_type,
+            platform=updated.platform,
+            tier=updated.tier,
+            description=updated.description,
+            actor=body.reviewer,
+            reason=body.reason,
+        )
+    except RuntimeError:
+        pass
+
     return action_to_card(updated)
 
 
