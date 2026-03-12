@@ -163,6 +163,51 @@ export async function aiChat(client_id: string, message: string) {
   });
 }
 
+// ── Campaigns ─────────────────────────────────────────────────────────────────
+
+export interface CampaignSummary {
+  id: string;
+  client_id: string;
+  name: string;
+  status: "active" | "paused" | "archived" | "deleted";
+  objective: string | null;
+  daily_budget: number;
+  spend: number;
+  clicks: number;
+  impressions: number;
+  cpc: number;
+  ctr: number;
+  roas: number | null;
+  conversions: number;
+}
+
+export async function getCampaigns(
+  client_id: string
+): Promise<CampaignSummary[]> {
+  return apiFetch<CampaignSummary[]>(`/api/v1/clients/${client_id}/campaigns`);
+}
+
+// ── Direct action creation ────────────────────────────────────────────────────
+
+export interface CreateActionPayload {
+  client_id: string;
+  platform?: string;
+  action_type: string;
+  description: string;
+  reason: string;
+  estimated_impact: string;
+  payload?: Record<string, unknown>;
+}
+
+export async function createAction(
+  data: CreateActionPayload
+): Promise<ApprovalAction> {
+  return apiFetch<ApprovalAction>("/api/v1/actions", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
 export async function aiCopy(
   client_id: string,
   product: string,
