@@ -208,14 +208,34 @@ Claude AI suggests actions. You approve. System executes. No money moves without
 ---
 
 ### Phase 5 — Claude AI layer
-**Status: NOT STARTED**
+**Status: COMPLETE — Audited & Verified (2026-03-12) — 121/121 tests passing (33 new)**
 
-- [ ] `ads_engine/ai/analyst.py` — performance analysis (flag anomalies, find winners/losers)
-- [ ] `ads_engine/ai/copywriter.py` — generate ad copy variations per audience
-- [ ] `ads_engine/ai/optimizer.py` — suggest budget shifts, audience changes, new campaigns
-- [ ] `ads_engine/ai/chat.py` — conversational interface (natural language → pending action)
-- [ ] Client context injection (Tickets99 audience info, CPC targets injected into every prompt)
-- [ ] Suggestions always route through approval queue, never execute directly
+- [x] `ads_engine/ai/client.py` — Anthropic SDK wrapper: `complete(system, messages)` with model + token config from settings.yaml
+- [x] `ads_engine/ai/context.py` — `build_system_prompt(client_id)` injects client name, industry, audience, spend limits, and CPC targets into every Claude call
+- [x] `ads_engine/ai/chat.py` — `ChatSession` with stateful message history. Natural language → `PendingAction` via structured JSON. Auto-queues tier 2/3 actions for human approval.
+- [x] `ads_engine/ai/analyst.py` — `analyze_performance()` takes PerformanceReports and returns structured insights (winners, underperformers, anomalies, recommended_actions)
+- [x] `ads_engine/ai/optimizer.py` — `suggest_optimizations()` proposes budget shifts and audience changes as `list[PendingAction]`
+- [x] `ads_engine/ai/copywriter.py` — `generate_copy()` produces headline + body + CTA variations for a product/audience
+- [x] `POST /api/v1/ai/chat` — REST endpoint: message in, response + queued actions out
+- [x] `POST /api/v1/ai/copy` — REST endpoint: generate ad copy variations (1-10)
+- [x] Client context injected into every prompt — Tickets99's audience, CPC targets, spend limits
+- [x] All suggestions route through approval queue — Claude never executes directly
+- [x] Tier routing: AI suggestions become Tier 1 (auto), Tier 2 (approve), or Tier 3 (admin) based on action type
+- [x] Graceful fallback: non-JSON Claude responses don't crash — return empty action list
+- [x] `tests/test_ai.py` — 33 tests covering all AI modules + endpoints, zero real API calls (all mocked)
+
+#### Audit Log (2026-03-12) — Phase 5 build + fixes
+| # | Issue | Fix |
+|---|---|---|
+| Bug 14 | `_build_pending_action` did `.upper()` on action type but `ActionType` values are lowercase | Changed to `.lower()` — now accepts both `"PAUSE_ADSET"` and `"pause_adset"` from Claude |
+| Bug 15 | `PendingAction.tier1()` called with `reason`/`estimated_impact` kwargs it doesn't accept | Tier 1 factory called with only the 5 params it expects |
+| Bug 16 | `Platform.TIKTOK` exists — `"tiktok"` is a valid platform, test used wrong invalid value | Changed bad-platform test to `"facebook"` |
+| Bug 17 | Test fixtures for `Campaign`, `AdSet`, `PerformanceReport` missing required fields (`client_id`, `created_at`, `updated_at`, `entity_type`, `date_from`, `date_to`) | All fixture helpers updated |
+
+#### Test Results (2026-03-12) — 121 passing, 0 failing, 0 warnings
+```
+121 passed in 12.77s
+```
 
 ---
 
