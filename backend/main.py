@@ -24,9 +24,12 @@ async def lifespan(app: FastAPI):
     print(f"[ads-engine] Starting in {settings.app_env} mode")
     print(f"[ads-engine] DB: {settings.database_url}")
 
-    # Phase 3: init approval queue
-    policy = ApprovalPolicy(safety)
-    queue = init_queue(policy)
+    # Phase 3: init approval queue (skip if already initialised by tests)
+    from ads_engine.approval import queue as _queue_module
+    if _queue_module.approval_queue is None:
+        policy = ApprovalPolicy(safety)
+        init_queue(policy)
+    queue = _queue_module.approval_queue
     pending = queue.pending_count()
     print(f"[ads-engine] Approval queue ready — {pending} pending action(s)")
 
@@ -58,8 +61,11 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    # ── Routers (added per phase) ──────────────────────────────────────────
-    # Phase 4: from ads_engine.api.router import router; app.include_router(router)
+    # ── Routers ────────────────────────────────────────────────────────────
+    from ads_engine.api.router import api_router
+    from ads_engine.api.routes.websocket import router as ws_router
+    app.include_router(api_router)
+    app.include_router(ws_router)   # /ws — no version prefix for WebSocket
 
     @app.get("/health")
     async def health():
