@@ -305,14 +305,52 @@ Claude AI suggests actions. You approve. System executes. No money moves without
 ---
 
 ### Phase 8 — Google Ads adapter
-**Status: NOT STARTED**
+**Status: COMPLETE — 158/158 tests passing (21 new) — 2026-03-12**
 
-- [ ] `ads_engine/platforms/google.py` — Google Ads API implementation
-- [ ] OAuth 2.0 refresh token flow
-- [ ] Campaign / ad group / ad fetch
-- [ ] Performance metrics (clicks, spend, conversions, ROAS)
-- [ ] Write operations (Tier 2 — same approval flow as Meta)
-- [ ] Enable in `config/clients/tickets99.yaml`
+- [x] `ads_engine/platforms/google.py` — full Google Ads API v18 adapter implementing all `PlatformAdapter` methods
+- [x] OAuth 2.0 + refresh token via `google-ads` Python SDK (auto-handled by `GoogleAdsClient`)
+- [x] All money values in micros — `_to_micros()` / `_to_float()` helpers (₹1 = 1,000,000 micros)
+- [x] `authenticate()` — validate credentials with lightweight customer query
+- [x] `get_campaigns()` — GAQL fetch with status, channel type, daily budget
+- [x] `get_adsets()` — fetch ad groups (Google's equivalent of ad sets)
+- [x] `get_ads()` — fetch Responsive Search Ads with headline / description / final URL
+- [x] `get_campaign_performance()` — GAQL metrics (spend, clicks, impressions, CPC, CTR, ROAS)
+- [x] `get_adset_performance()` — same at ad group level
+- [x] `_aggregate_metrics()` — sums multi-row GAQL responses; CTR converted ratio → percentage
+- [x] `create_campaign()` — creates CampaignBudget resource then Campaign (always PAUSED)
+- [x] `create_adset()` — creates ad group with ₹5 default CPC bid
+- [x] `create_ad()` — builds Responsive Search Ad with ≥3 headlines and ≥2 descriptions (limits enforced)
+- [x] `update_campaign_budget()` — looks up budget resource name, then mutates via field mask
+- [x] `set_campaign_status()` — ENABLED / PAUSED via CampaignOperation field mask
+- [x] `set_adset_status()` — same for ad groups
+- [x] `update_adset_targeting()` — logs note that Google targeting is campaign-level (Campaign Criterion API)
+- [x] `delete_campaign()` — Tier 3, uses `op.remove` (permanent deletion)
+- [x] `duplicate_campaign()` — fetches source budget + channel, calls `create_campaign()` (no native copy API)
+- [x] `GoogleAdsAPIError` — wraps `GoogleAdsException` + general errors with `request_id`
+- [x] Lazy `_get_client()` — imports `google-ads` only when first needed; tests inject mock directly
+- [x] `config/clients/tickets99.yaml` — Google enabled (add `customer_id` to activate)
+- [x] `requirements.txt` — `google-ads==24.1.0` added
+- [x] `tests/test_google_adapter.py` — 21 tests, 0 real API calls
+
+#### Key differences vs Meta adapter
+| Concern | Meta | Google |
+|---|---|---|
+| Money unit | Paise (×100) | Micros (×1,000,000) |
+| Ad set concept | Ad Set | Ad Group |
+| Ad type | Link Ad / carousel | Responsive Search Ad |
+| Campaign copy | `/copies` endpoint | Manual re-create |
+| Targeting level | Ad Set | Campaign Criteria |
+| Auth | Long-lived token | OAuth 2.0 refresh token |
+
+#### Audit Log (2026-03-12)
+| # | Issue | Fix |
+|---|---|---|
+| — | No bugs found — clean first build | — |
+
+#### Test Results (2026-03-12) — 158 passing, 0 failing
+```
+158 passed in 17.81s
+```
 
 ---
 

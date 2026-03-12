@@ -35,6 +35,9 @@ apscheduler==3.10.4
 python-dateutil==2.9.0
 pytz==2024.2
 
+# Google Ads (Phase 8)
+google-ads==24.1.0
+
 # Dev / testing
 pytest==8.3.4
 pytest-asyncio==0.24.0

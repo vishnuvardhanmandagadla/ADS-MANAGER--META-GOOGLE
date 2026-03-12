@@ -11,8 +11,8 @@ platforms:
     page_id: ""                # Fill in: Facebook Page ID
     pixel_id: ""               # Fill in: Meta Pixel ID
   google:
-    enabled: false             # Enable in Phase 8
-    customer_id: ""
+    enabled: true              # Phase 8 — add customer_id to activate
+    customer_id: ""            # Fill in: 10-digit Google Ads Customer ID (no dashes)
 
 spend_limits:                  # Client-specific overrides (≤ global safety limits)
   max_daily_spend: 20000       # ₹20,000/day for Tickets99
