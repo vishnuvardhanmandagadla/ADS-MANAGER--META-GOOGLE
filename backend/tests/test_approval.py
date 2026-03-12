@@ -7,7 +7,7 @@ Run with: pytest tests/test_approval.py -v
 from __future__ import annotations
 
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -149,14 +149,14 @@ def test_action_mark_failed():
 
 def test_action_is_expired():
     action = make_tier2_action()
-    action.expires_at = datetime.utcnow() - timedelta(hours=1)
+    action.expires_at = datetime.now(timezone.utc) - timedelta(hours=1)
     assert action.is_expired is True
 
 
 def test_action_not_expired_when_approved():
     action = make_tier2_action()
     action.approve("vishnu")
-    action.expires_at = datetime.utcnow() - timedelta(hours=1)
+    action.expires_at = datetime.now(timezone.utc) - timedelta(hours=1)
     assert action.is_expired is False  # non-PENDING never expires
 
 
@@ -367,7 +367,7 @@ def test_queue_cannot_cancel_approved(tmp_path):
 def test_queue_expire_old(tmp_path):
     queue = make_queue(tmp_path)
     action = make_tier2_action()
-    action.expires_at = datetime.utcnow() - timedelta(hours=1)
+    action.expires_at = datetime.now(timezone.utc) - timedelta(hours=1)
     queue._actions[action.id] = action  # bypass policy for this test
     expired_count = queue.expire_old()
     assert expired_count == 1

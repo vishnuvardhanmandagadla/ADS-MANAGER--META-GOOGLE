@@ -10,14 +10,10 @@ It enforces:
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta
-from typing import TYPE_CHECKING
+from datetime import datetime, timezone
 
 from ..models.base import ActionTier
 from .action import ActionStatus, ActionType, PendingAction
-
-if TYPE_CHECKING:
-    pass
 
 logger = logging.getLogger(__name__)
 
@@ -125,7 +121,7 @@ class ApprovalPolicy:
         if action.action_type != ActionType.CREATE_CAMPAIGN:
             return
         max_per_day = self._cfg.get("spend_limits", {}).get("max_new_campaigns_per_day", 5)
-        today = datetime.utcnow().date()
+        today = datetime.now(timezone.utc).date()
         created_today = sum(
             1
             for a in history
@@ -146,7 +142,7 @@ class ApprovalPolicy:
         key = (action.client_id, action.action_type)
         last_reject = self._cooldowns.get(key)
         if last_reject:
-            elapsed = (datetime.utcnow() - last_reject).total_seconds() / 60
+            elapsed = (datetime.now(timezone.utc) - last_reject).total_seconds() / 60
             if elapsed < cool_min:
                 remaining = cool_min - elapsed
                 raise PolicyViolation(
@@ -179,7 +175,7 @@ class ApprovalPolicy:
     def record_rejection(self, action: PendingAction) -> None:
         """Call this when an action is rejected to start the cool-down clock."""
         key = (action.client_id, action.action_type)
-        self._cooldowns[key] = datetime.utcnow()
+        self._cooldowns[key] = datetime.now(timezone.utc)
         logger.info(
             "Cool-down started for (%s, %s)", action.client_id, action.action_type
         )

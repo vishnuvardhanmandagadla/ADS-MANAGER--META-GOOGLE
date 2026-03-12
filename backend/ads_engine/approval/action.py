@@ -7,7 +7,7 @@ approves it (for Tier 2/3). Tier 1 actions pass straight through.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Optional
 from uuid import uuid4
@@ -83,9 +83,9 @@ class PendingAction(BaseModel):
 
     # Lifecycle
     status: ActionStatus = ActionStatus.PENDING
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     expires_at: datetime = Field(
-        default_factory=lambda: datetime.utcnow() + timedelta(hours=DEFAULT_EXPIRY_HOURS)
+        default_factory=lambda: datetime.now(timezone.utc) + timedelta(hours=DEFAULT_EXPIRY_HOURS)
     )
 
     # Review tracking
@@ -101,7 +101,7 @@ class PendingAction(BaseModel):
 
     @property
     def is_expired(self) -> bool:
-        return self.status == ActionStatus.PENDING and datetime.utcnow() > self.expires_at
+        return self.status == ActionStatus.PENDING and datetime.now(timezone.utc) > self.expires_at
 
     @property
     def is_terminal(self) -> bool:
@@ -116,7 +116,7 @@ class PendingAction(BaseModel):
 
     @property
     def age_minutes(self) -> float:
-        return (datetime.utcnow() - self.created_at).total_seconds() / 60
+        return (datetime.now(timezone.utc) - self.created_at).total_seconds() / 60
 
     # ── Transition helpers ─────────────────────────────────────────────────
 
@@ -125,26 +125,26 @@ class PendingAction(BaseModel):
             raise ValueError(f"Cannot approve action in status {self.status}")
         self.status = ActionStatus.APPROVED
         self.reviewed_by = reviewer
-        self.reviewed_at = datetime.utcnow()
+        self.reviewed_at = datetime.now(timezone.utc)
 
     def reject(self, reviewer: str, reason: str = "") -> None:
         if self.status != ActionStatus.PENDING:
             raise ValueError(f"Cannot reject action in status {self.status}")
         self.status = ActionStatus.REJECTED
         self.reviewed_by = reviewer
-        self.reviewed_at = datetime.utcnow()
+        self.reviewed_at = datetime.now(timezone.utc)
         self.rejection_reason = reason
 
     def mark_executed(self) -> None:
         if self.status != ActionStatus.APPROVED:
             raise ValueError(f"Cannot execute action in status {self.status}")
         self.status = ActionStatus.EXECUTED
-        self.executed_at = datetime.utcnow()
+        self.executed_at = datetime.now(timezone.utc)
 
     def mark_failed(self, error: str) -> None:
         self.status = ActionStatus.FAILED
         self.execution_error = error
-        self.executed_at = datetime.utcnow()
+        self.executed_at = datetime.now(timezone.utc)
 
     def mark_expired(self) -> None:
         if self.status == ActionStatus.PENDING:

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
 
@@ -54,7 +54,7 @@ class PerformanceReport(BaseModel):
     date_from: datetime
     date_to: datetime
     metrics: PerformanceMetrics
-    fetched_at: datetime = Field(default_factory=datetime.utcnow)
+    fetched_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 # ── Campaign ──────────────────────────────────────────────────────────────────

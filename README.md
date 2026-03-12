@@ -42,7 +42,7 @@ Claude AI suggests actions. You approve. System executes. No money moves without
 ## Build Progress
 
 ### Phase 1 — Backend scaffold + config + platform base
-**Status: COMPLETE — Audited & Verified**
+**Status: COMPLETE — Audited & Verified (2026-03-12)**
 
 - [x] Project directory structure (`backend/` + `frontend/`)
 - [x] `requirements.txt` — all Python dependencies pinned
@@ -59,6 +59,20 @@ Claude AI suggests actions. You approve. System executes. No money moves without
 - [x] `frontend/postcss.config.mjs` — required for Tailwind CSS to compile
 - [x] `frontend/app/clients/page.tsx` — clients page stub (was in architecture, missing from initial build)
 
+#### Audit Log (2026-03-12) — Initial build + post-audit fixes
+| # | Issue | Fix |
+|---|---|---|
+| Bug 1 | `config.py` ROOT path `parents[3]` → project root, YAML files would not load | Fixed to `parents[2]` → `backend/` |
+| Bug 2 | `httpx` duplicated in `requirements.txt` | Removed duplicate |
+| Bug 3 | Unused imports (`os`, `field_validator`) in `config.py` | Removed |
+| Missing 1 | `frontend/app/clients/page.tsx` missing from initial build | Added |
+| Missing 2 | `frontend/postcss.config.mjs` missing — Tailwind would not compile | Added |
+
+#### Cross-phase audit (2026-03-12) — All phases reviewed together
+| # | Issue | File | Fix |
+|---|---|---|---|
+| Bug 4 | `datetime.utcnow()` deprecated in Python 3.12 (1 occurrence) | `models/base.py` | Replaced with `datetime.now(timezone.utc)` |
+
 #### Audit Log (2026-03-12)
 > Full file-by-file review conducted after initial build. 3 bugs found and fixed, 2 missing files added.
 
@@ -73,7 +87,7 @@ Claude AI suggests actions. You approve. System executes. No money moves without
 ---
 
 ### Phase 2 — Meta Ads platform adapter
-**Status: COMPLETE — 15/15 tests passing**
+**Status: COMPLETE — Audited & Verified (2026-03-12) — 15/15 tests passing**
 
 - [x] `ads_engine/platforms/meta.py` — full Meta Marketing API v21.0 implementation
 - [x] Authentication with long-lived access tokens (`/me` validation)
@@ -97,6 +111,12 @@ Claude AI suggests actions. You approve. System executes. No money moves without
 ```
 15 passed in 0.13s
 ```
+#### Audit Log (2026-03-12) — Cross-phase review
+| # | Issue | Fix |
+|---|---|---|
+| Bug 5 | `datetime.utcnow()` deprecated (5 occurrences) | Replaced with `datetime.now(timezone.utc)` + added `timezone` import |
+| Bug 6 | `str(dict).replace("'", '"')` fragile JSON in `create_adset`, `create_ad`, `update_adset_targeting`, `duplicate_campaign` — breaks if any string value contains a single quote | Replaced all 4 occurrences with `json.dumps()` + added `import json` |
+
 | Test | Result |
 |---|---|
 | `test_authenticate_success` | PASSED |
@@ -118,7 +138,7 @@ Claude AI suggests actions. You approve. System executes. No money moves without
 ---
 
 ### Phase 3 — Approval system (human-in-the-loop)
-**Status: COMPLETE — 45/45 tests passing**
+**Status: COMPLETE — Audited & Verified (2026-03-12) — 45/45 tests passing**
 
 - [x] `ads_engine/approval/action.py` — `PendingAction` model with full state machine (PENDING → APPROVED → EXECUTED / REJECTED / FAILED / EXPIRED / CANCELLED)
 - [x] `ActionType` enum — all 16 action types classified by tier (GET_CAMPAIGNS through DELETE_CAMPAIGN)
@@ -135,9 +155,16 @@ Claude AI suggests actions. You approve. System executes. No money moves without
 - [x] Queue initialised at app startup in `main.py` lifespan
 - [x] `tests/test_approval.py` — 45 unit tests covering all components
 
-#### Test Results (2026-03-12)
+#### Audit Log (2026-03-12) — Cross-phase review
+| # | Issue | File | Fix |
+|---|---|---|---|
+| Bug 7 | `datetime.utcnow()` deprecated (8 occurrences in action.py, 3 in policies.py) | `action.py`, `policies.py` | Replaced all with `datetime.now(timezone.utc)` + added `timezone` import |
+| Bug 8 | `from datetime import timedelta` imported but never used | `policies.py` | Removed |
+| Bug 9 | `if TYPE_CHECKING: pass` — dead code block | `policies.py` | Removed |
+
+#### Test Results (2026-03-12) — Post-audit, zero deprecation warnings
 ```
-60 passed total (15 Phase 2 + 45 Phase 3) in 0.19s
+60 passed total (15 Phase 2 + 45 Phase 3) in 0.21s — 0 warnings
 ```
 
 ---

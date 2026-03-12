@@ -11,7 +11,8 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import datetime
+import json
+from datetime import datetime, timezone
 from typing import Any, Optional
 
 import httpx
@@ -414,7 +415,7 @@ class MetaAdapter(PlatformAdapter):
                 return c
 
         # Fallback — construct minimal object if not in list yet
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         return Campaign(
             id=campaign_id,
             client_id=self.client.client_id,
@@ -455,7 +456,7 @@ class MetaAdapter(PlatformAdapter):
         payload: dict[str, Any] = {
             "name": name,
             "campaign_id": campaign_id,
-            "targeting": str(targeting_spec).replace("'", '"'),
+            "targeting": json.dumps(targeting_spec),
             "status": "PAUSED",
             "billing_event": "IMPRESSIONS",
             "optimization_goal": "LINK_CLICKS",
@@ -469,7 +470,7 @@ class MetaAdapter(PlatformAdapter):
         adset_id = result["id"]
         logger.info("Created adset %s ('%s') in campaign %s", adset_id, name, campaign_id)
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         return AdSet(
             id=adset_id,
             campaign_id=campaign_id,
@@ -494,19 +495,22 @@ class MetaAdapter(PlatformAdapter):
             raise MetaAPIError("page_id is required in client config to create ads")
 
         # Step 1: Create ad creative
+        story_spec: dict[str, Any] = {
+            "page_id": self._page_id,
+            "link_data": {
+                "message": creative.body or "",
+                "link": creative.destination_url or "",
+                "name": creative.headline or "",
+                "description": creative.description or "",
+                "call_to_action": {"type": creative.call_to_action or "LEARN_MORE"},
+            },
+        }
+        if creative.image_url:
+            story_spec["link_data"]["picture"] = creative.image_url
+
         creative_payload: dict[str, Any] = {
             "name": f"{name} Creative",
-            "object_story_spec": str({
-                "page_id": self._page_id,
-                "link_data": {
-                    "message": creative.body or "",
-                    "link": creative.destination_url or "",
-                    "name": creative.headline or "",
-                    "description": creative.description or "",
-                    "call_to_action": {"type": creative.call_to_action or "LEARN_MORE"},
-                    **({"picture": creative.image_url} if creative.image_url else {}),
-                },
-            }).replace("'", '"'),
+            "object_story_spec": json.dumps(story_spec),
         }
         creative_result = await self._post(f"/{self._ad_account_id}/adcreatives", creative_payload)
         creative_id = creative_result["id"]
@@ -526,7 +530,7 @@ class MetaAdapter(PlatformAdapter):
         campaign_id = adset_data.get("campaign_id", "")
 
         logger.info("Created ad %s ('%s') in adset %s", ad_id, name, adset_id)
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         return Ad(
             id=ad_id,
             adset_id=adset_id,
@@ -589,7 +593,7 @@ class MetaAdapter(PlatformAdapter):
 
         # Fetch parent campaign_id then refresh adsets
         adset_data = await self._get(f"/{adset_id}", fields="campaign_id,name,status,daily_budget,targeting,created_time,updated_time")
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         return AdSet(
             id=adset_id,
             campaign_id=adset_data.get("campaign_id", ""),
@@ -624,7 +628,7 @@ class MetaAdapter(PlatformAdapter):
             ]
 
         await self._post(f"/{adset_id}", {
-            "targeting": str(targeting_spec).replace("'", '"')
+            "targeting": json.dumps(targeting_spec)
         })
         logger.info("Updated targeting on adset %s", adset_id)
         return await self.set_adset_status(adset_id, EntityStatus.PAUSED)  # re-fetch adset
@@ -650,11 +654,11 @@ class MetaAdapter(PlatformAdapter):
             {
                 "deep_copy": "true",
                 "status_option": "PAUSED",
-                "rename_options": str({
+                "rename_options": json.dumps({
                     "rename_strategy": "CUSTOMIZED_NAME",
                     "rename_suffix": "",
                     "rename_prefix": new_name,
-                }).replace("'", '"'),
+                }),
             },
         )
         new_id = result.get("copied_campaign_id", result.get("id", ""))
@@ -665,7 +669,7 @@ class MetaAdapter(PlatformAdapter):
             if c.id == new_id:
                 return c
 
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         return Campaign(
             id=new_id,
             client_id=self.client.client_id,
