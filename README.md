@@ -118,13 +118,27 @@ Claude AI suggests actions. You approve. System executes. No money moves without
 ---
 
 ### Phase 3 — Approval system (human-in-the-loop)
-**Status: NOT STARTED**
+**Status: COMPLETE — 45/45 tests passing**
 
-- [ ] `ads_engine/approval/action.py` — `PendingAction` model (id, tier, type, reason, impact, payload, status)
-- [ ] `ads_engine/approval/queue.py` — DB-backed queue (create, list, expire)
-- [ ] `ads_engine/approval/policies.py` — tier rules (what needs approval, cool-down logic)
-- [ ] `ads_engine/approval/executor.py` — execute approved actions only
-- [ ] `ads_engine/approval/reviewer.py` — send to human, wait for response
+- [x] `ads_engine/approval/action.py` — `PendingAction` model with full state machine (PENDING → APPROVED → EXECUTED / REJECTED / FAILED / EXPIRED / CANCELLED)
+- [x] `ActionType` enum — all 16 action types classified by tier (GET_CAMPAIGNS through DELETE_CAMPAIGN)
+- [x] Factory helpers — `PendingAction.tier1()`, `.tier2()`, `.tier3()` for clean construction
+- [x] `ads_engine/approval/policies.py` — `ApprovalPolicy` with 5 safety checks:
+  - Daily spend cap per client (₹50,000)
+  - Max single budget change (₹10,000)
+  - Max new campaigns per day (5)
+  - Cool-down after rejection (60 min — won't re-suggest same action)
+  - Absolute Tier 3 restrictions (delete, disable safety, override caps)
+- [x] `ads_engine/approval/queue.py` — in-memory queue with JSON file persistence (survives restarts). Full CRUD: enqueue, approve, reject, cancel, expire, mark_executed, mark_failed
+- [x] `ads_engine/approval/executor.py` — `ActionExecutor` dispatches approved actions to the correct platform adapter method. Refuses to run unapproved actions.
+- [x] `ads_engine/approval/reviewer.py` — `ActionReviewer` formats WhatsApp messages and dashboard cards. Phase 9 will wire up real channels.
+- [x] Queue initialised at app startup in `main.py` lifespan
+- [x] `tests/test_approval.py` — 45 unit tests covering all components
+
+#### Test Results (2026-03-12)
+```
+60 passed total (15 Phase 2 + 45 Phase 3) in 0.19s
+```
 
 ---
 

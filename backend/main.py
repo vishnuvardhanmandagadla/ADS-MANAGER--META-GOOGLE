@@ -9,7 +9,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from ads_engine.core.config import get_app_config, get_settings
+from ads_engine.core.config import get_app_config, get_safety_config, get_settings
+from ads_engine.approval.policies import ApprovalPolicy
+from ads_engine.approval.queue import init_queue
 
 
 @asynccontextmanager
@@ -17,10 +19,18 @@ async def lifespan(app: FastAPI):
     """Startup and shutdown logic."""
     settings = get_settings()
     config = get_app_config()
+    safety = get_safety_config()
+
     print(f"[ads-engine] Starting in {settings.app_env} mode")
     print(f"[ads-engine] DB: {settings.database_url}")
+
+    # Phase 3: init approval queue
+    policy = ApprovalPolicy(safety)
+    queue = init_queue(policy)
+    pending = queue.pending_count()
+    print(f"[ads-engine] Approval queue ready — {pending} pending action(s)")
+
     # TODO Phase 4: init DB connection pool
-    # TODO Phase 3: init approval queue
     # TODO Phase 5: init AI client
     yield
     print("[ads-engine] Shutting down")
