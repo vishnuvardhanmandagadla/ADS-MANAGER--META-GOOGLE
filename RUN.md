@@ -147,7 +147,7 @@ INFO:     Uvicorn running on http://127.0.0.1:8000
 
 ```bash
 cd "C:\Users\vishn\Desktop\ADS-META & GOOGLE\frontend"
-node_modules\.bin\vite.cmd
+npm run dev
 ```
 
 You should see:
@@ -203,8 +203,8 @@ Open **http://localhost:3000** in your browser.
 You forgot to activate the virtual environment.
 Run `venv\Scripts\activate` before starting uvicorn.
 
-### Frontend doesn't start — "Cannot find module" or "vite not found"
-You skipped `npm install`. Run it inside the `frontend` folder.
+### Frontend doesn't start — "vite not found" or "Cannot find module"
+You skipped `npm install`. Run it inside the `frontend` folder first, then `npm run dev`.
 
 ### Login page loads but login fails
 The backend is not running. Start it first and confirm http://localhost:8000/health returns OK.
@@ -222,7 +222,7 @@ Something else is using that port. Either close it or use a different port:
 uvicorn main:app --reload --port 8001
 
 # Frontend on a different port
-node_modules\.bin\vite.cmd --port 3001
+npm run dev -- --port 3001
 ```
 
 If you change ports, also update `frontend/.env.local`:
