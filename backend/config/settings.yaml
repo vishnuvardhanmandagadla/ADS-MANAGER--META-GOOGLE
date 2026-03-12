@@ -1,0 +1,31 @@
+app:
+  name: "Ads Engine"
+  version: "0.1.0"
+  description: "AI-powered ad management with human-in-the-loop approval"
+
+api:
+  prefix: "/api/v1"
+  cors_origins:
+    - "http://localhost:3000"    # Next.js dev server
+    - "http://localhost:3001"
+  docs_url: "/docs"             # Swagger UI
+
+scheduler:
+  poll_interval_seconds: 300    # Check performance every 5 min
+  report_interval_seconds: 3600 # Pull full reports every hour
+
+ai:
+  model: "claude-sonnet-4-6"
+  max_tokens: 4096
+  temperature: 0.3              # Lower = more consistent suggestions
+
+platforms:
+  meta:
+    api_version: "v21.0"
+    base_url: "https://graph.facebook.com"
+  google:
+    api_version: "v18"
+
+notifications:
+  approval_expiry_hours: 24     # Pending actions expire after 24h
+  reminder_after_hours: 4       # Re-notify if no response in 4h

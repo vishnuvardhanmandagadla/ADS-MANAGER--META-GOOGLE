@@ -1,0 +1,1 @@
+"""Ads Engine — core package."""

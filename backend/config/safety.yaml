@@ -1,0 +1,31 @@
+# ── Safety Rules — edit with care ─────────────────────────
+# These limits protect client budgets. Tier 3 rules cannot
+# be overridden from the UI — only by editing this file.
+
+spend_limits:
+  max_daily_spend_per_client: 50000     # ₹50,000/day hard cap
+  max_single_budget_change: 10000       # Can't change budget by more than ₹10K at once
+  require_approval_above: 5000          # Any action involving >₹5K needs approval
+  max_new_campaigns_per_day: 5          # Don't create more than 5 campaigns per day per client
+
+anomaly_detection:
+  auto_pause_on_cpc_spike: true
+  cpc_spike_threshold_pct: 200          # Pause if CPC rises 200% above 7-day avg
+  auto_pause_on_spend_overrun: true
+  spend_overrun_threshold_pct: 120      # Pause if daily spend hits 120% of budget
+
+approval:
+  cool_down_after_reject_minutes: 60    # Don't re-suggest same action for 60 min
+  auto_approve_reports: true            # Tier 1 reads never need approval
+  auto_approve_pause_on_anomaly: false  # Even anomaly pauses need a human ✅
+
+audit:
+  log_everything: true                  # Every action, approved or rejected
+  retention_days: 365
+
+# Tier 3 — absolute restrictions (never bypass)
+restrictions:
+  never_delete_without_admin: true
+  never_disable_safety_rules: true
+  never_remove_client_account: true
+  never_override_budget_caps: true

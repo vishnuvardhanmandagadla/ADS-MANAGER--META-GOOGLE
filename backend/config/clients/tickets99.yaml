@@ -1,0 +1,34 @@
+client_id: "tickets99"
+name: "Tickets99"
+industry: "Event Ticketing"
+currency: "INR"
+timezone: "Asia/Kolkata"
+
+platforms:
+  meta:
+    enabled: true
+    ad_account_id: ""          # Fill in: act_XXXXXXXXXX
+    page_id: ""                # Fill in: Facebook Page ID
+    pixel_id: ""               # Fill in: Meta Pixel ID
+  google:
+    enabled: false             # Enable in Phase 8
+    customer_id: ""
+
+spend_limits:                  # Client-specific overrides (≤ global safety limits)
+  max_daily_spend: 20000       # ₹20,000/day for Tickets99
+  max_single_budget_change: 5000
+
+team_access:
+  - user: "vishnu"
+    role: "admin"
+  - user: "siva"
+    role: "manager"
+  - user: "vyas"
+    role: "viewer"
+
+ai_context: |
+  Tickets99 is an event ticketing platform operating in South India,
+  primarily targeting cities like Chennai, Hyderabad, and Bangalore.
+  Key audiences: 18-35, interests in live music, concerts, comedy shows,
+  sports events. Best performing content: urgency + price anchoring.
+  Target CPC: ₹3.00. Target ROAS: 4x.
