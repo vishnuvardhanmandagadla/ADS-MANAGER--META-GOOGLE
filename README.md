@@ -42,7 +42,7 @@ Claude AI suggests actions. You approve. System executes. No money moves without
 ## Build Progress
 
 ### Phase 1 — Backend scaffold + config + platform base
-**Status: COMPLETE**
+**Status: COMPLETE — Audited & Verified**
 
 - [x] Project directory structure (`backend/` + `frontend/`)
 - [x] `requirements.txt` — all Python dependencies pinned
@@ -51,29 +51,69 @@ Claude AI suggests actions. You approve. System executes. No money moves without
 - [x] `config/safety.yaml` — spend limits, anomaly rules, Tier 3 restrictions
 - [x] `config/clients/tickets99.yaml` — first client config
 - [x] `ads_engine/models/base.py` — all Pydantic models (Campaign, AdSet, Ad, Targeting, PerformanceReport...)
-- [x] `ads_engine/platforms/base.py` — abstract platform adapter interface
+- [x] `ads_engine/platforms/base.py` — abstract platform adapter interface with Tier 1/2/3 annotations
 - [x] `ads_engine/core/config.py` — settings loader (env + YAML, cached)
 - [x] `main.py` — FastAPI app with CORS, lifespan, /health endpoint
 - [x] Frontend scaffold — Next.js 15, Tailwind, all page routes stubbed
 - [x] `frontend/next.config.ts` — API proxy to FastAPI backend
+- [x] `frontend/postcss.config.mjs` — required for Tailwind CSS to compile
+- [x] `frontend/app/clients/page.tsx` — clients page stub (was in architecture, missing from initial build)
+
+#### Audit Log (2026-03-12)
+> Full file-by-file review conducted after initial build. 3 bugs found and fixed, 2 missing files added.
+
+| # | Issue | Fix |
+|---|---|---|
+| Bug 1 | `config.py` ROOT path used `parents[3]` → pointed to project root, config files would not load at runtime | Fixed to `parents[2]` → resolves to `backend/` correctly (verified) |
+| Bug 2 | `httpx` listed twice in `requirements.txt` | Removed duplicate |
+| Bug 3 | Unused imports in `config.py` (`import os`, `from pydantic import field_validator`) | Removed |
+| Missing 1 | `frontend/app/clients/page.tsx` listed in architecture nav but not created | Added |
+| Missing 2 | `frontend/postcss.config.mjs` required for Tailwind CSS compilation — `npm run dev` would fail without it | Added |
 
 ---
 
 ### Phase 2 — Meta Ads platform adapter
-**Status: NOT STARTED**
+**Status: COMPLETE — 15/15 tests passing**
 
-- [ ] `ads_engine/platforms/meta.py` — full Meta Marketing API implementation
-- [ ] Authentication with long-lived access tokens
-- [ ] `get_campaigns()` — fetch all campaigns for a client account
-- [ ] `get_adsets()` / `get_ads()` — fetch ad sets and ads
-- [ ] `get_campaign_performance()` / `get_adset_performance()` — pull metrics
-- [ ] `create_campaign()` / `create_adset()` / `create_ad()` — write operations (Tier 2)
-- [ ] `update_campaign_budget()` — budget changes (Tier 2)
-- [ ] `set_campaign_status()` / `set_adset_status()` — pause / activate (Tier 2)
-- [ ] `delete_campaign()` — Tier 3, admin only
-- [ ] `duplicate_campaign()` — clone campaigns with all ad sets
-- [ ] Rate limit handling + retry logic
-- [ ] Unit tests for Meta adapter
+- [x] `ads_engine/platforms/meta.py` — full Meta Marketing API v21.0 implementation
+- [x] Authentication with long-lived access tokens (`/me` validation)
+- [x] `get_campaigns()` — fetch all campaigns for a client account
+- [x] `get_adsets()` — fetch ad sets with targeting (age, gender, location, interests)
+- [x] `get_ads()` — fetch ads with creative (headline, body, image, CTA)
+- [x] `get_campaign_performance()` / `get_adset_performance()` — pull Insights (spend, clicks, CPC, CPM, CTR, ROAS, conversions)
+- [x] `create_campaign()` — always creates as PAUSED, never goes live without review
+- [x] `create_adset()` — builds Meta targeting spec from our Targeting model
+- [x] `create_ad()` — creates ad creative then links ad, starts PAUSED
+- [x] `update_campaign_budget()` — budget in INR, converted to paise for Meta API
+- [x] `set_campaign_status()` / `set_adset_status()` — pause / activate (rejects invalid statuses)
+- [x] `update_adset_targeting()` — modify audience targeting on existing ad sets
+- [x] `delete_campaign()` — Tier 3, sets status to DELETED + warning log
+- [x] `duplicate_campaign()` — uses Meta's `/copies` endpoint, deep copy, starts PAUSED
+- [x] Rate limit handling — detects code 17/32, exponential backoff, 3 retries
+- [x] Timeout retry — 3 attempts with backoff on `httpx.TimeoutException`
+- [x] `tests/test_meta_adapter.py` — 15 unit tests, all passing, zero real API calls
+
+#### Test Results (2026-03-12)
+```
+15 passed in 0.13s
+```
+| Test | Result |
+|---|---|
+| `test_authenticate_success` | PASSED |
+| `test_authenticate_failure` | PASSED |
+| `test_get_campaigns_returns_list` | PASSED |
+| `test_get_campaigns_empty` | PASSED |
+| `test_get_adsets` | PASSED |
+| `test_get_campaign_performance` | PASSED |
+| `test_get_campaign_performance_no_data` | PASSED |
+| `test_set_campaign_status_active` | PASSED |
+| `test_set_campaign_status_invalid` | PASSED |
+| `test_update_campaign_budget` | PASSED |
+| `test_meta_api_error_propagates` | PASSED |
+| `test_parse_status_known_values` | PASSED |
+| `test_parse_status_unknown_defaults_to_paused` | PASSED |
+| `test_parse_metrics_empty` | PASSED |
+| `test_parse_metrics_full` | PASSED |
 
 ---
 
