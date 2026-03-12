@@ -19,10 +19,11 @@ Claude AI suggests actions. You approve. System executes. No money moves without
 | Layer | Tech |
 |---|---|
 | Backend | FastAPI + Python |
-| Frontend | Next.js 15 + shadcn/ui + Tailwind CSS |
+| Frontend | React 18 + Vite 6 + Tailwind CSS |
+| Routing | React Router DOM v6 |
 | Charts | Recharts |
 | Real-time | WebSocket |
-| Auth | NextAuth.js |
+| Auth | JWT (localStorage) |
 | AI | Claude API (claude-sonnet-4-6) |
 | Database | PostgreSQL (SQLite for local dev) |
 | Platforms | Meta Ads API, Google Ads API |
@@ -442,10 +443,60 @@ uvicorn main:app --reload --port 8000
 ```bash
 cd frontend
 npm install
-npm run dev
+node_modules\.bin\vite.cmd        # Windows
+# or
+npx vite                          # macOS / Linux
 ```
 
 - Dashboard: http://localhost:3000
+
+> **Shortcut (Windows):** Double-click `start-frontend.bat` on the Desktop.
+
+---
+
+### Frontend Migration — Next.js → Vite + React
+**Status: COMPLETE (2026-03-12)**
+
+Replaced Next.js 15 with plain React 18 + Vite 6 for simplicity and familiarity.
+
+| Before (Next.js) | After (React + Vite) |
+|---|---|
+| `next/link` | `react-router-dom` Link |
+| `useRouter().push()` | `useNavigate()` |
+| `usePathname()` | `useLocation().pathname` |
+| `process.env.NEXT_PUBLIC_*` | `import.meta.env.VITE_*` |
+| `"use client"` directives | Not needed |
+| File-based routing (`app/`) | `<Routes>` in `App.tsx` |
+| Next.js server components | Pure client-side React |
+| `next build` | `vite build` |
+
+**New frontend structure:**
+```
+frontend/
+  src/
+    App.tsx                      ← router setup
+    main.tsx                     ← entry point
+    lib/                         ← api.ts, auth.tsx, ws.ts
+    components/                  ← Sidebar, DashboardLayout
+    pages/
+      LoginPage.tsx
+      DashboardPage.tsx
+      CampaignsPage.tsx
+      ApprovalsPage.tsx
+      AiChatPage.tsx
+      SettingsPage.tsx
+      dashboard/                 ← MetricsBar, SpendChart, ClientsTable
+      campaigns/                 ← CampaignCard, BudgetModal
+      approvals/                 ← ActionCard
+  index.html
+  vite.config.ts
+  tailwind.config.js
+```
+
+- [x] All 6 pages migrated: Login, Dashboard, Campaigns, Approvals, AI Chat, Settings
+- [x] All functionality preserved — same UI, same API calls, same RBAC
+- [x] TypeScript: 0 errors
+- [x] Start command: `node_modules\.bin\vite.cmd` (or `npx vite`)
 
 ---
 
