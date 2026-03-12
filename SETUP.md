@@ -377,15 +377,20 @@ pytest tests/ -v
 
 ## 7. Frontend Setup
 
+> **Windows warning:** If your project folder name contains `&` (e.g. `ADS-META & GOOGLE`),
+> rename it to something without special characters (e.g. `ADS-ENGINE`) before running npm commands.
+> The `&` breaks Windows path resolution and causes `npm run dev` to fail.
+
 ```bash
 cd frontend
 
 # 1. Install dependencies
 npm install
 
-# 2. Create environment file
-# Create frontend/.env.local with:
-echo "NEXT_PUBLIC_API_URL=http://localhost:8000" > .env.local
+# 2. The .env.local file already exists with correct values.
+#    If missing, create it with:
+#    VITE_API_URL=http://localhost:8000
+#    VITE_WS_URL=ws://localhost:8000/ws
 
 # 3. Start dev server
 npm run dev
@@ -396,7 +401,6 @@ npm run dev
 **Build for production:**
 ```bash
 npm run build
-npm start
 ```
 
 ---
@@ -417,6 +421,8 @@ Terminal 2 — Frontend:
 cd frontend
 npm run dev
 ```
+
+> Note: `npm run dev` uses `node node_modules/vite/bin/vite.js` internally to avoid Windows path issues with special characters in folder names.
 
 Open http://localhost:3000 and log in.
 
@@ -482,7 +488,9 @@ pip install -r requirements.txt
 | `@radix-ui/react-tooltip` | 1.1.6 | Tooltips |
 | `clsx` | 2.1.1 | Conditional CSS class merging |
 | `tailwind-merge` | 2.6.0 | Tailwind class deduplication |
-| `next-auth` | 5.0.0-beta | Authentication helpers |
+| `react-router-dom` | 6.28.0 | Client-side routing |
+| `vite` | 6.0.7 | Build tool and dev server |
+| `@vitejs/plugin-react` | 4.3.4 | React support for Vite |
 
 Install all:
 ```bash

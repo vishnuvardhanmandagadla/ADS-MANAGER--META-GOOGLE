@@ -1,12 +1,31 @@
 # How to Run the Project
 
-Step-by-step guide to start the Ads Engine from scratch on any Windows machine.
+Complete step-by-step guide to get the Ads Engine running on Windows.
 
 ---
 
-## What You Need Installed First
+## IMPORTANT — Folder Name Issue
 
-| Tool | Download | How to check |
+The project folder is named **`ADS-META & GOOGLE`**.
+The `&` character causes problems in Windows terminals when running npm scripts.
+
+**Fix — rename the folder before starting:**
+
+1. Close all open terminals
+2. Right-click the folder on Desktop
+3. Rename it to **`ADS-ENGINE`** (no spaces, no special characters)
+4. Use `C:\Users\vishn\Desktop\ADS-ENGINE` as your path from now on
+
+> If you don't rename it, `npm run dev` will fail with a "Cannot find module" error.
+> The package.json has a workaround built in — but renaming is cleaner and avoids all future issues.
+
+---
+
+## Prerequisites
+
+Install these before anything else:
+
+| Tool | Download | Verify with |
 |---|---|---|
 | Python 3.11+ | https://python.org/downloads | `python --version` |
 | Node.js 20 LTS | https://nodejs.org | `node --version` |
@@ -18,124 +37,115 @@ Step-by-step guide to start the Ads Engine from scratch on any Windows machine.
 
 ### Step 1 — Clone the Repository
 
-Open Command Prompt and run:
-
 ```bash
 git clone https://github.com/vishnuvardhanmandagadla/ADS-MANAGER--META-GOOGLE.git
-cd "ADS-MANAGER--META-GOOGLE"
 ```
+
+Then rename the cloned folder from `ADS-MANAGER--META-GOOGLE` to `ADS-ENGINE` (or any name without special characters).
 
 ---
 
 ### Step 2 — Backend Setup
 
-#### 2a. Go to the backend folder
+Open Command Prompt and run:
 
 ```bash
-cd backend
+cd "C:\Users\vishn\Desktop\ADS-ENGINE\backend"
 ```
 
-#### 2b. Create a virtual environment
+#### 2a. Create virtual environment
 
 ```bash
 python -m venv venv
 ```
 
-#### 2c. Activate the virtual environment
+#### 2b. Activate virtual environment
 
-**Windows Command Prompt:**
 ```bash
 venv\Scripts\activate
 ```
 
-**Windows PowerShell:**
-```powershell
-venv\Scripts\Activate.ps1
-```
+You will see `(venv)` at the start of the line. That means it worked.
 
-You will see `(venv)` appear at the start of your terminal. That means it worked.
-
-#### 2d. Install Python packages
+#### 2c. Install Python packages
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Takes 2–3 minutes on first run.
+Takes 2–3 minutes first time.
 
-#### 2e. Create the .env file
+#### 2d. Create the .env file
 
 ```bash
 copy .env.example .env
 ```
 
-Open `.env` in Notepad and fill in these minimum values to run locally:
+Open `.env` in Notepad and set these minimum values:
 
 ```env
 APP_ENV=development
-SECRET_KEY=         ← run: python -c "import secrets; print(secrets.token_hex(32))"
+SECRET_KEY=your-secret-key-here
 DEBUG=true
 DATABASE_URL=sqlite+aiosqlite:///./ads_engine.db
 ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-Leave Meta / Google / WhatsApp keys blank for now — the UI will still load, just with empty campaign data.
+To generate a SECRET_KEY, run:
+```bash
+python -c "import secrets; print(secrets.token_hex(32))"
+```
 
-> Full key setup guide → see `SETUP.md`
+Copy the output and paste it as the SECRET_KEY value.
+
+> Leave Meta / Google / WhatsApp keys blank for now — the dashboard will still load, just with empty campaign data. See `SETUP.md` for how to get those keys.
 
 ---
 
 ### Step 3 — Frontend Setup
 
-Open a **new** Command Prompt window (leave the backend one open).
-
-#### 3a. Go to the frontend folder
+Open a **new** Command Prompt window (keep the backend one open).
 
 ```bash
-cd frontend
+cd "C:\Users\vishn\Desktop\ADS-ENGINE\frontend"
 ```
 
-#### 3b. Install Node packages
+#### 3a. Install Node packages
 
 ```bash
 npm install
 ```
 
-Takes 1–2 minutes on first run.
+Takes 1–2 minutes first time.
 
-#### 3c. Create the frontend .env file
+#### 3b. Check the .env.local file
 
-The file `frontend/.env.local` already exists with the right content.
-If it's missing, create it with:
+The file `frontend/.env.local` should already exist with:
 
-```bash
-echo VITE_API_URL=http://localhost:8000 > .env.local
-echo VITE_WS_URL=ws://localhost:8000/ws >> .env.local
+```env
+VITE_API_URL=http://localhost:8000
+VITE_WS_URL=ws://localhost:8000/ws
 ```
 
----
-
-## Running the Project (every day)
-
-### Easiest way — use the bat files on your Desktop
-
-1. Double-click **`start-backend.bat`** → a black window opens, leave it running
-2. Double-click **`start-frontend.bat`** → another black window opens, leave it running
-3. Open your browser and go to **http://localhost:3000**
+If it's missing, create it manually in Notepad with that content.
 
 ---
 
-### Manual way — run in two terminals
+## Running Every Day
 
-**Terminal 1 — Backend:**
+After first-time setup, starting the project every day is just two commands in two terminals.
+
+---
+
+### Terminal 1 — Backend
 
 ```bash
-cd "C:\Users\vishn\Desktop\ADS-META & GOOGLE\backend"
+cd "C:\Users\vishn\Desktop\ADS-ENGINE\backend"
 venv\Scripts\activate
 uvicorn main:app --reload --port 8000
 ```
 
-You should see:
+Expected output:
 ```
 INFO:     Uvicorn running on http://127.0.0.1:8000
 [ads-engine] Starting in development mode
@@ -143,14 +153,18 @@ INFO:     Uvicorn running on http://127.0.0.1:8000
 [ads-engine] Audit log ready
 ```
 
-**Terminal 2 — Frontend:**
+**Keep this window open.**
+
+---
+
+### Terminal 2 — Frontend
 
 ```bash
-cd "C:\Users\vishn\Desktop\ADS-META & GOOGLE\frontend"
+cd "C:\Users\vishn\Desktop\ADS-ENGINE\frontend"
 npm run dev
 ```
 
-You should see:
+Expected output:
 ```
   VITE v6.x.x  ready in ~500ms
 
@@ -158,64 +172,79 @@ You should see:
   ➜  Network: http://192.168.x.x:3000/
 ```
 
+**Keep this window open.**
+
+---
+
+### Or — Use the Bat Files on Desktop
+
+1. Double-click **`start-backend.bat`** → leave that window open
+2. Double-click **`start-frontend.bat`** → leave that window open
+3. Open **http://localhost:3000** in browser
+
+> Update the paths inside the bat files if you renamed the folder.
+
 ---
 
 ## Login
 
 Open **http://localhost:3000** in your browser.
 
-| Username | Password | Role | Access |
+| Username | Password | Role | What they can do |
 |---|---|---|---|
 | `vishnu` | `admin123` | Admin | Full access — all pages, all actions, audit log |
 | `siva` | `manager123` | Manager | Approve/reject actions for Tickets99 |
-| `vyas` | `viewer123` | Viewer | Read-only — see reports, no actions |
+| `vyas` | `viewer123` | Viewer | Read-only — reports only, no actions |
 
 ---
 
-## Pages in the Dashboard
+## Pages
 
 | Page | URL | What it shows |
 |---|---|---|
-| Dashboard | `/dashboard` | Today's spend, clicks, CPC, pending approvals count |
+| Dashboard | `/dashboard` | Spend, clicks, CPC, pending approvals |
 | Campaigns | `/campaigns` | All campaigns — pause, activate, edit budget |
-| Approvals | `/approvals` | Pending actions waiting for your ✅ |
+| Approvals | `/approvals` | Pending actions waiting for ✅ |
 | AI Chat | `/ai-chat` | Talk to Claude — it suggests optimisations |
-| Settings | `/settings` | Safety limits, team, audit log (admin only) |
+| Settings | `/settings` | Safety limits, team access, audit log (admin only) |
 
 ---
 
-## Verify Everything is Working
+## Verify It's Working
 
-1. Backend health check → open **http://localhost:8000/health**
-   - Should return: `{"status":"ok","env":"development"}`
-
-2. API docs → open **http://localhost:8000/docs**
-   - Should show Swagger UI with all endpoints listed
-
-3. Frontend → open **http://localhost:3000**
-   - Should show the login page
+| Check | How |
+|---|---|
+| Backend running | Open http://localhost:8000/health → should return `{"status":"ok"}` |
+| API docs | Open http://localhost:8000/docs → Swagger UI |
+| Frontend running | Open http://localhost:3000 → login page |
 
 ---
 
 ## Troubleshooting
 
-### Backend doesn't start — "ModuleNotFoundError"
-You forgot to activate the virtual environment.
-Run `venv\Scripts\activate` before starting uvicorn.
+### `npm run dev` fails — "Cannot find module vite"
+The `&` in the folder name is breaking the path.
+**Fix:** Rename the folder to `ADS-ENGINE` (remove the `&`).
 
-### Frontend doesn't start — "vite not found" or "Cannot find module"
-You skipped `npm install`. Run it inside the `frontend` folder first, then `npm run dev`.
+### Backend — "ModuleNotFoundError"
+Virtual environment is not activated.
+Run `venv\Scripts\activate` before uvicorn.
 
-### Login page loads but login fails
-The backend is not running. Start it first and confirm http://localhost:8000/health returns OK.
+### Login fails after backend starts
+Backend may have crashed on startup.
+Check the backend terminal for errors.
+Most common cause: `DATABASE_URL` in `.env` is pointing to PostgreSQL instead of SQLite.
+Make sure this line is uncommented:
+```
+DATABASE_URL=sqlite+aiosqlite:///./ads_engine.db
+```
 
 ### Campaigns page shows no data
-The backend is running but Meta/Google API keys are not filled in yet.
-The UI works — it just shows empty data until real ad account IDs are connected.
-See `SETUP.md` to fill in the keys.
+Normal — Meta/Google API keys are not filled in yet.
+The UI loads fine, just no real campaign data until you connect ad accounts.
+See `SETUP.md`.
 
-### Port 3000 or 8000 already in use
-Something else is using that port. Either close it or use a different port:
+### Port already in use
 
 ```bash
 # Backend on a different port
@@ -225,47 +254,58 @@ uvicorn main:app --reload --port 8001
 npm run dev -- --port 3001
 ```
 
-If you change ports, also update `frontend/.env.local`:
+If you change the backend port, also update `frontend/.env.local`:
 ```
 VITE_API_URL=http://localhost:8001
 VITE_WS_URL=ws://localhost:8001/ws
 ```
 
-### PowerShell blocks venv activation — "cannot be loaded because running scripts is disabled"
+### PowerShell blocks venv — "running scripts is disabled"
 Run this once in PowerShell as Administrator:
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
-Then try activating again.
 
 ---
 
 ## What Runs Where
 
-| Service | URL | Technology |
+| Service | URL | Tech |
 |---|---|---|
 | Backend API | http://localhost:8000 | Python + FastAPI |
-| API Docs (Swagger) | http://localhost:8000/docs | Auto-generated (debug mode only) |
-| Frontend | http://localhost:3000 | React 18 + Vite |
+| API Docs | http://localhost:8000/docs | Swagger (debug mode only) |
+| Frontend | http://localhost:3000 | React 18 + Vite 6 |
 
 ---
 
-## Frontend Tech (for reference)
+## Frontend Structure (for reference)
 
-The frontend is **plain React** — no Next.js.
-
-| What | How |
-|---|---|
-| Framework | React 18 + Vite 6 |
-| Routing | React Router DOM v6 |
-| Styling | Tailwind CSS |
-| Icons | Lucide React |
-| Charts | Recharts |
-| Entry point | `src/main.tsx` |
-| Router setup | `src/App.tsx` |
-| Pages | `src/pages/` |
-| Shared components | `src/components/` |
-| API calls | `src/lib/api.ts` |
-| Auth state | `src/lib/auth.tsx` |
-| WebSocket | `src/lib/ws.ts` |
-| Env vars | `frontend/.env.local` (prefix: `VITE_`) |
+```
+frontend/
+├── src/
+│   ├── main.tsx              ← entry point
+│   ├── App.tsx               ← router (all 6 routes defined here)
+│   ├── index.css             ← Tailwind base styles
+│   ├── lib/
+│   │   ├── api.ts            ← all API calls to backend
+│   │   ├── auth.tsx          ← login state (React Context)
+│   │   └── ws.ts             ← WebSocket auto-reconnect hook
+│   ├── components/
+│   │   ├── Sidebar.tsx       ← left nav with pending badge
+│   │   └── DashboardLayout.tsx  ← auth guard + sidebar wrapper
+│   └── pages/
+│       ├── LoginPage.tsx
+│       ├── DashboardPage.tsx
+│       ├── CampaignsPage.tsx
+│       ├── ApprovalsPage.tsx
+│       ├── AiChatPage.tsx
+│       ├── SettingsPage.tsx
+│       ├── dashboard/        ← MetricsBar, SpendChart, ClientsTable
+│       ├── campaigns/        ← CampaignCard, BudgetModal
+│       └── approvals/        ← ActionCard
+├── index.html
+├── vite.config.ts
+├── tailwind.config.js
+├── .env.local                ← VITE_API_URL, VITE_WS_URL
+└── package.json
+```
